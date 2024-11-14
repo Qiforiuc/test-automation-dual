@@ -1,7 +1,10 @@
 package org.example.commons;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 public class Context {
     // Private static instance of the same class that will hold the single instance
@@ -13,6 +16,7 @@ public class Context {
     // Private constructor to prevent instantiation from other classes
     private Context() {
         contextData = new HashMap<>();
+        loadPropertiesFromFile();
     }
 
     // Public method to create or return the existing instance (Singleton)
@@ -31,5 +35,26 @@ public class Context {
     // Public method to set a value in the context
     public void setValue(String key, Object value) {
         contextData.put(key, value);
+    }
+
+    private void loadPropertiesFromFile() {
+        Properties properties = new Properties();
+        try (InputStream input = Thread.currentThread().getContextClassLoader().getResourceAsStream("api.properties")) {
+            if (input == null) {
+                System.out.println("Sorry, unable to find api.properties");
+                return;
+            }
+            properties.load(input);
+
+            // Store all properties in the contextData map
+            for (String key : properties.stringPropertyNames()) {
+                contextData.put(key, properties.getProperty(key));
+            }
+
+            System.out.println("Properties loaded successfully from api.properties");
+        } catch (IOException ex) {
+            System.err.println("Error loading properties from api.properties: " + ex.getMessage());
+            ex.printStackTrace();
+        }
     }
 }
